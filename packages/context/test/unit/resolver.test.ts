@@ -88,6 +88,66 @@ describe('constructor injection', () => {
     const t = instantiateClass(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('FOO:BAR');
   });
+
+  it('reports circular dependencies of two bindings', () => {
+    const context = new Context();
+    class XClass {
+      // tslint:disable-next-line:no-any
+      constructor(@inject('y') public y: any) {}
+    }
+
+    class YClass {
+      constructor(@inject('x') public x: XClass) {}
+    }
+
+    context.bind('x').toClass(XClass);
+    context.bind('y').toClass(YClass);
+    expect(() => context.getSync('x')).to.throw(/Circular dependency/);
+    expect(() => context.getSync('y')).to.throw(/Circular dependency/);
+  });
+
+  it('reports circular dependencies of three bindings', () => {
+    const context = new Context();
+    class XClass {
+      // tslint:disable-next-line:no-any
+      constructor(@inject('y') public y: any) {}
+    }
+
+    class YClass {
+      // tslint:disable-next-line:no-any
+      constructor(@inject('z') public z: any) {}
+    }
+
+    class ZClass {
+      // tslint:disable-next-line:no-any
+      constructor(@inject('x') public x: any) {}
+    }
+
+    context.bind('x').toClass(XClass);
+    context.bind('y').toClass(YClass);
+    context.bind('z').toClass(ZClass);
+    expect(() => context.getSync('x')).to.throw(/Circular dependency/);
+    expect(() => context.getSync('y')).to.throw(/Circular dependency/);
+    expect(() => context.getSync('z')).to.throw(/Circular dependency/);
+  });
+
+  it('will not report circular dependencies if two bindings', () => {
+    const context = new Context();
+    class XClass {}
+
+    class YClass {
+      constructor(
+        @inject('x') public a: XClass,
+        @inject('x') public b: XClass,
+      ) {}
+    }
+
+    context.bind('x').toClass(XClass);
+    context.bind('y').toClass(YClass);
+    const y: YClass = context.getSync('y');
+    expect(y.a).to.be.instanceof(XClass);
+    expect(y.b).to.be.instanceof(XClass);
+  });
 });
 
 describe('async constructor injection', () => {
@@ -188,6 +248,24 @@ describe('property injection', () => {
 
     const t = instantiateClass(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('FOO:BAR');
+  });
+
+  it('reports circular dependencies of two bindings', () => {
+    const context = new Context();
+    class XClass {
+      // tslint:disable-next-line:no-any
+      @inject('y') public y: any;
+    }
+
+    class YClass {
+      // tslint:disable-next-line:no-any
+      @inject('x') public x: any;
+    }
+
+    context.bind('x').toClass(XClass);
+    context.bind('y').toClass(YClass);
+    expect(() => context.getSync('x')).to.throw(/Circular dependency/);
+    expect(() => context.getSync('y')).to.throw(/Circular dependency/);
   });
 });
 
