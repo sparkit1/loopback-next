@@ -9,6 +9,7 @@ import {
   RestBindings,
   RestServer,
   RestComponent,
+  RestApplication,
 } from '../../..';
 import {Application} from '@loopback/core';
 
@@ -45,17 +46,30 @@ describe('Starting the application', () => {
         port: 0,
       },
     });
-    const server = await app.getServer(RestServer);
-    server.handler((sequence, request, response) => {
-      sequence.send(response, 'hello world');
-    });
 
-    await app.start();
-    const port = await server.get(RestBindings.PORT);
+    await startServerCheck(app);
+  });
 
-    await supertest(`http://localhost:${port}`)
-      .get('/')
-      .expect(200, 'hello world');
-    await app.stop();
+  it('starts an HTTP server', async () => {
+    const app = new RestApplication();
+    app.bind(RestBindings.PORT).to(0);
+    await startServerCheck(app);
   });
 });
+
+// Helper function to spin up the application instance and assert that it
+// works.
+async function startServerCheck(app: Application) {
+  const server = await app.getServer(RestServer);
+  server.handler((sequence, request, response) => {
+    sequence.send(response, 'hello world');
+  });
+
+  await app.start();
+  const port = await server.get(RestBindings.PORT);
+
+  await supertest(`http://localhost:${port}`)
+    .get('/')
+    .expect(200, 'hello world');
+  await app.stop();
+}
