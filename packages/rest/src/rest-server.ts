@@ -28,6 +28,7 @@ import {
 } from './internal-types';
 import {ControllerClass} from './router/routing-table';
 import {RestBindings} from './keys';
+import {generateSchema, mPath} from './router/generate-schema';
 
 const SequenceActions = RestBindings.SequenceActions;
 
@@ -227,7 +228,11 @@ export class RestServer extends Context implements Server {
     }
 
     // TODO(bajtos) should we support API spec defined asynchronously?
-    const spec: OpenApiSpec = this.getSync(RestBindings.API_SPEC);
+    let spec: OpenApiSpec = this.getSync(RestBindings.API_SPEC);
+
+    // generates API spec from TS models from a given path
+    generateSchema(spec, mPath);
+
     for (const path in spec.paths) {
       for (const verb in spec.paths[path]) {
         const routeSpec: OperationObject = spec.paths[path][verb];

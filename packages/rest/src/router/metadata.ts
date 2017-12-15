@@ -322,6 +322,12 @@ export function param(paramSpec: ParameterObject) {
         paramSpec,
       )(target, member, descriptorOrIndex);
     }
+    // if a class is passed in instead of a schema
+    if (typeof paramSpec.schema === 'function') {
+      paramSpec.schema = {
+        $ref: `#/definitions/${paramSpec.name}`,
+      };
+    }
   };
 }
 
@@ -468,7 +474,7 @@ export namespace param {
    * @param name Parameter name
    * @param schema The schema defining the type used for the body parameter.
    */
-  export const body = function(name: string, schema: SchemaObject) {
+  export const body = function(name: string, schema: SchemaObject | Function) {
     return param({name, in: 'body', schema});
   };
 }
