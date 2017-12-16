@@ -13,6 +13,7 @@ import {Binding, BoundValue, ValueOrPromise} from './binding';
 import {Context} from './context';
 import {isPromise} from './is-promise';
 import {ResolutionSession} from './resolver';
+import {RejectionError} from './rejection-error';
 
 const PARAMETERS_KEY = 'inject:parameters';
 const PROPERTIES_KEY = 'inject:properties';
@@ -241,9 +242,11 @@ function resolveAsOptions(
   }
   path = path.replace(/#/g, '.');
 
-  let boundValue = session.binding.options;
+  let boundValue = RejectionError.catch(session.binding.options);
   if (isPromise(boundValue)) {
-    return boundValue.then(v => Binding.getDeepProperty(v, path));
+    return boundValue.then(
+      v => (v instanceof RejectionError ? v : Binding.getDeepProperty(v, path)),
+    );
   }
   return Binding.getDeepProperty(boundValue, path);
 }

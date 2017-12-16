@@ -25,4 +25,6 @@ export {
   Injection,
 } from './inject';
 
+export {RejectionError} from './rejection-error';
+
 export * from '@loopback/metadata';

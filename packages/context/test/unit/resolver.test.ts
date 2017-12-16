@@ -10,7 +10,13 @@ import {
   instantiateClass,
   invokeMethod,
   Injection,
+  Constructor,
+  RejectionError,
 } from '../..';
+
+function instantiate<T>(ctor: Constructor<T>, ctx: Context) {
+  return RejectionError.reject(instantiateClass<T>(ctor, ctx));
+}
 
 describe('constructor injection', () => {
   let ctx: Context;
@@ -26,7 +32,7 @@ describe('constructor injection', () => {
       constructor(@inject('foo') public foo: string) {}
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.foo).to.eql('FOO');
   });
 
@@ -39,7 +45,7 @@ describe('constructor injection', () => {
     }
 
     expect(() => {
-      instantiateClass(TestClass, ctx);
+      instantiate(TestClass, ctx);
     }).to.throw(/Cannot resolve injected arguments/);
   });
 
@@ -56,7 +62,7 @@ describe('constructor injection', () => {
       ) {}
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('FOO:BAR');
   });
 
@@ -73,7 +79,7 @@ describe('constructor injection', () => {
       ) {}
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('foo:BAR');
   });
 
@@ -85,7 +91,7 @@ describe('constructor injection', () => {
       ) {}
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('FOO:BAR');
   });
 
@@ -164,7 +170,7 @@ describe('async constructor injection', () => {
       constructor(@inject('foo') public foo: string) {}
     }
 
-    const t = await instantiateClass(TestClass, ctx);
+    const t = await instantiate(TestClass, ctx);
     expect(t.foo).to.eql('FOO');
   });
 
@@ -177,7 +183,7 @@ describe('async constructor injection', () => {
       ) {}
     }
 
-    const t = await instantiateClass(TestClass, ctx);
+    const t = await instantiate(TestClass, ctx);
     expect(t.fooBar).to.eql('FOO:BAR');
   });
 });
@@ -195,7 +201,7 @@ describe('property injection', () => {
     class TestClass {
       @inject('foo') foo: string;
     }
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.foo).to.eql('FOO');
   });
 
@@ -206,7 +212,7 @@ describe('property injection', () => {
     }
 
     expect(() => {
-      instantiateClass(TestClass, ctx);
+      instantiate(TestClass, ctx);
     }).to.throw(/Cannot resolve injected property/);
   });
 
@@ -221,7 +227,7 @@ describe('property injection', () => {
       public fooBar: string;
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('FOO:BAR');
   });
 
@@ -236,7 +242,7 @@ describe('property injection', () => {
       public fooBar: string;
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('foo:BAR');
   });
 
@@ -246,7 +252,7 @@ describe('property injection', () => {
       public fooBar: string;
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.fooBar).to.eql('FOO:BAR');
   });
 
@@ -282,7 +288,7 @@ describe('async property injection', () => {
     class TestClass {
       @inject('foo') foo: string;
     }
-    const t: TestClass = await instantiateClass(TestClass, ctx);
+    const t: TestClass = await instantiate(TestClass, ctx);
     expect(t.foo).to.eql('FOO');
   });
 
@@ -292,7 +298,7 @@ describe('async property injection', () => {
       public fooBar: string;
     }
 
-    const t = await instantiateClass(TestClass, ctx);
+    const t = await instantiate(TestClass, ctx);
     expect(t.fooBar).to.eql('FOO:BAR');
   });
 });
@@ -313,7 +319,7 @@ describe('dependency injection', () => {
       constructor(@inject('foo') public foo: string) {}
     }
 
-    const t = instantiateClass(TestClass, ctx) as TestClass;
+    const t = instantiate(TestClass, ctx) as TestClass;
     expect(t.foo).to.eql('FOO');
     expect(t.bar).to.eql('BAR');
   });
@@ -335,7 +341,7 @@ describe('async dependency injection', () => {
       constructor(@inject('foo') public foo: string) {}
     }
 
-    const t = await instantiateClass(TestClass, ctx);
+    const t = await instantiate(TestClass, ctx);
     expect(t.foo).to.eql('FOO');
     expect(t.bar).to.eql('BAR');
   });
@@ -357,7 +363,7 @@ describe('async constructor & sync property injection', () => {
       constructor(@inject('foo') public foo: string) {}
     }
 
-    const t = await instantiateClass(TestClass, ctx);
+    const t = await instantiate(TestClass, ctx);
     expect(t.foo).to.eql('FOO');
     expect(t.bar).to.eql('BAR');
   });
@@ -379,7 +385,7 @@ describe('sync constructor & async property injection', () => {
       constructor(@inject('foo') public foo: string) {}
     }
 
-    const t = await instantiateClass(TestClass, ctx);
+    const t = await instantiate(TestClass, ctx);
     expect(t.foo).to.eql('FOO');
     expect(t.bar).to.eql('BAR');
   });
